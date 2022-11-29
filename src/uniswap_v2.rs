@@ -5,6 +5,7 @@ use rust_decimal::Decimal;
 
 use crate::models::{ERC20Token, Pool};
 
+#[derive(Clone)]
 pub struct UniswapV2Pool {
     pub address: H160,
     pub token_0: ERC20Token,
@@ -38,11 +39,12 @@ impl Pool for UniswapV2Pool {
     ) -> (U256, Self) {
         let reserves_sell = self.reserves.get(&sell_token.symbol).unwrap();
         let reserves_buy = self.reserves.get(&buy_token.symbol).unwrap();
-        let k = reserves_buy * reserves_sell;
-        let sell_amount_less_fees =
-            sell_amount * (Self::FEE_PRECISION - Self::FEE) / Self::FEE_PRECISION;
+        let sell_amount_less_fee: U256 = sell_amount * (Self::FEE_PRECISION - Self::FEE);
+        let numerator = sell_amount_less_fee * reserves_buy;
+        let denominator: U256 = (reserves_sell * Self::FEE_PRECISION) + sell_amount_less_fee;
 
-        let amount_out = reserves_buy - (k / (reserves_sell + sell_amount_less_fees));
+        let amount_out = numerator / denominator;
+
         let new_sell_reserves = reserves_sell + sell_amount;
         let new_buy_reserves = reserves_buy - amount_out;
 
@@ -50,15 +52,12 @@ impl Pool for UniswapV2Pool {
         reserves.insert(buy_token.symbol.clone(), new_buy_reserves);
         reserves.insert(sell_token.symbol.clone(), new_sell_reserves);
 
-        let updated_pool = UniswapV2Pool {
-            address: self.address.clone(),
-            token_0: self.token_0.clone(),
-            token_1: self.token_1.clone(),
-            reserves: reserves,
-        };
+        let mut updated_pool = self.clone();
+        updated_pool.reserves = reserves;
 
         return (amount_out, updated_pool);
     }
+
     fn inertia(&self, a: &ERC20Token, b: &ERC20Token) -> U256 {
         return U256::zero();
     }
@@ -112,7 +111,7 @@ mod tests {
             usv2_pool.reserves.get(&a.symbol).unwrap(),
             &U256::from_str_radix("15000000000", 10).unwrap()
         );
-        assert_eq!(usv2_pool.fee(a, b), 0.3)
+        assert_eq!(usv2_pool.fee(a, b), 0.003)
     }
 
     #[test]
