@@ -38,11 +38,12 @@ impl Pool for UniswapV2Pool {
     ) -> (U256, Self) {
         let reserves_sell = self.reserves.get(&sell_token.symbol).unwrap();
         let reserves_buy = self.reserves.get(&buy_token.symbol).unwrap();
-        let k = reserves_buy * reserves_sell;
-        let sell_amount_less_fees =
-            sell_amount * (Self::FEE_PRECISION - Self::FEE) / Self::FEE_PRECISION;
+        let sell_amount_less_fee: U256 = sell_amount * (Self::FEE_PRECISION - Self::FEE);
+        let numerator = sell_amount_less_fee * reserves_buy;
+        let denominator: U256 = (reserves_sell * Self::FEE_PRECISION) + sell_amount_less_fee;
 
-        let amount_out = reserves_buy - (k / (reserves_sell + sell_amount_less_fees));
+        let amount_out = numerator / denominator;
+
         let new_sell_reserves = reserves_sell + sell_amount;
         let new_buy_reserves = reserves_buy - amount_out;
 
@@ -59,6 +60,7 @@ impl Pool for UniswapV2Pool {
 
         return (amount_out, updated_pool);
     }
+
     fn inertia(&self, a: &ERC20Token, b: &ERC20Token) -> U256 {
         return U256::zero();
     }
