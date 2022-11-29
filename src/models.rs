@@ -9,7 +9,7 @@ pub struct ERC20Token {
     pub address: Address,
 }
 
-pub struct PoolSimulationError{}
+pub struct PoolSimulationError {}
 
 pub trait Pool {
     fn spot_price(&self, a: &ERC20Token, b: &ERC20Token) -> Decimal;

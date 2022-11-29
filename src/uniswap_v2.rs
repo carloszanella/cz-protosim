@@ -66,7 +66,7 @@ impl Pool for UniswapV2Pool {
 
 #[cfg(test)]
 mod tests {
-    use std::{collections::HashMap};
+    use std::collections::HashMap;
 
     use ethereum_types::{Address, H160, U256};
     use rust_decimal::Decimal;
@@ -179,6 +179,9 @@ mod tests {
             &usv2pool.token_1,
         );
 
-        assert_eq!(amount_out, U256::from_str_radix("7535635391574243447", 10).unwrap())
+        assert_eq!(
+            amount_out,
+            U256::from_str_radix("7535635391574243447", 10).unwrap()
+        )
     }
 }

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use ethereum_types::{Address, U256, H160};
+use ethereum_types::{Address, H160, U256};
 use models::ERC20Token;
 use uniswap_v2::UniswapV2Pool;
 
