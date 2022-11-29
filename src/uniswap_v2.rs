@@ -5,6 +5,7 @@ use rust_decimal::Decimal;
 
 use crate::models::{ERC20Token, Pool};
 
+#[derive(Clone)]
 pub struct UniswapV2Pool {
     pub address: H160,
     pub token_0: ERC20Token,
@@ -51,12 +52,8 @@ impl Pool for UniswapV2Pool {
         reserves.insert(buy_token.symbol.clone(), new_buy_reserves);
         reserves.insert(sell_token.symbol.clone(), new_sell_reserves);
 
-        let updated_pool = UniswapV2Pool {
-            address: self.address.clone(),
-            token_0: self.token_0.clone(),
-            token_1: self.token_1.clone(),
-            reserves: reserves,
-        };
+        let mut updated_pool = self.clone();
+        updated_pool.reserves = reserves;
 
         return (amount_out, updated_pool);
     }
@@ -114,7 +111,7 @@ mod tests {
             usv2_pool.reserves.get(&a.symbol).unwrap(),
             &U256::from_str_radix("15000000000", 10).unwrap()
         );
-        assert_eq!(usv2_pool.fee(a, b), 0.3)
+        assert_eq!(usv2_pool.fee(a, b), 0.003)
     }
 
     #[test]
